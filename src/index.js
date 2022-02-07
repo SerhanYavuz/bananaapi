@@ -3,6 +3,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
+const rfs = require('rotating-file-stream');
+const path = require('path');
 
 const jwt = require('express-jwt');
 const jwksRsa = require('jwks-rsa');
@@ -12,16 +14,24 @@ const {insertBanana, getAllBananas,getBanana, updateBanana} = require('./databas
 
 const app = express();
 
+var accessLogStream = rfs.createStream('access.log', {
+    interval: '1d', // rotate daily
+    path: path.join(__dirname, 'log')
+});
 
 app.use(helmet());
 app.use(bodyParser.json())
 app.use(cors());
-app.use(morgan('combined'));
-
+app.use(morgan('combined', { stream: accessLogStream }));
 
 app.get('/', async (req,res) => {
     res.send( await getAllBananas() );
 });
+
+function handleSaReq(req,res){
+    res.send({message : 'as'})
+}
+app.get('/sa', (req,res) => handleSaReq(req,res));
 
 const checkJwt = jwt(
     {
@@ -38,6 +48,7 @@ const checkJwt = jwt(
 );
 app.use(checkJwt);
 
+//[Route("/{parameter_name}")]
 app.get('/:id', async (req,res) => {
     res.send( await getBanana(req.params.id) );
 });
