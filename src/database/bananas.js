@@ -8,6 +8,7 @@ async function insertBanana(banana){
     const{insertedId} = await database.collection(collectionName).insertOne(banana);
     return insertedId;
 }
+
 async function getAllBananas(){
     const database = await getdatabase();
     return await database.collection(collectionName).find({}).toArray();
